@@ -1,0 +1,57 @@
+monitors:
+  - name: "test"
+    friendlyName: "Monitor 1"
+
+  - name: "test2"
+    friendlyName: "Monitor 2"
+
+  - name: "test3"
+    friendlyName: "Monitor 3"
+
+  - name: "test4"
+    friendlyName: "Monitor 3"
+
+  - name: "testre"
+    friendlyName: "Monitor 1"
+
+  - name: "testd2"
+    friendlyName: "Monitor 2"
+
+  - name: "tesdt3"
+    friendlyName: "Monitor 3"
+    
+  - name: "tesdt4"
+    friendlyName: "Monitor 3"
+
+  - name: "dtestre"
+    friendlyName: "Monitor 1"
+
+  - name: "stestd2"
+    friendlyName: "Monitor 2"
+
+  - name: "1stesdt3"
+    friendlyName: "Monitor 3"
+    
+  - name: "1stesdt4"
+    friendlyName: "Monitor 3"
+
+  - name: "1testd2"
+    friendlyName: "Monitor 2"
+
+  - name: "1tesdt3"
+    friendlyName: "Monitor 3"
+    
+  - name: "1tesdt4"
+    friendlyName: "Monitor 3"
+
+  - name: "1dtestre"
+    friendlyName: "Monitor 1"
+
+  - name: "21stestd2"
+    friendlyName: "Monitor 2"
+
+  - name: "21stesdt3"
+    friendlyName: "Monitor 3"
+    
+  - name: "21stesdt4"
+    friendlyName: "Monitor 3"
