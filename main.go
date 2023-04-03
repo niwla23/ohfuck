@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/storage/sqlite3"
+	"github.com/prometheus/alertmanager/template"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v2"
 )
@@ -112,6 +113,28 @@ func main() {
 
 	app.Get("/api/report/:monitorName/:state", func(c *fiber.Ctx) error {
 		return handleReport(c)
+	})
+
+	app.Post("/api/alertmanager", func(c *fiber.Ctx) error {
+		// parse request body
+		data := new(template.Data)
+		if err := c.BodyParser(data); err != nil {
+			return err
+		}
+
+		for _, alert := range data.Alerts {
+			// if alert.Status == "firing"
+			monitorName := alert.Labels["ohfuck_name"]
+			if monitorName == "" {
+				continue
+			}
+
+			encodedData, err := json.Marshal(MonitorState{Up: alert.Status != "firing", Reason: alert.Annotations["description"], LastReportTime: time.Now()})
+			check(err)
+			store.Set(monitorName, encodedData, 0)
+		}
+
+		return c.SendString("ok")
 	})
 
 	app.Get("/api/monitors", func(c *fiber.Ctx) error {
