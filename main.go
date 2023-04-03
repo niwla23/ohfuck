@@ -19,9 +19,9 @@ import (
 
 type AppConfig struct {
 	Monitors []struct {
-		Name                 string        `yaml:"name"`
-		FriendlyName         string        `yaml:"friendlyName"`
-		ReportTimeoutSeconds time.Duration `yaml:"reportTimeoutSeconds"`
+		Name          string        `yaml:"name"`
+		FriendlyName  string        `yaml:"friendlyName"`
+		ReportTimeout time.Duration `yaml:"reportTimeout"`
 	} `yaml:"monitors"`
 }
 
@@ -132,10 +132,10 @@ func main() {
 			monitorState.FriendlyName = monitorConfig.FriendlyName
 
 			timeSinceLastReport := time.Since(monitorState.LastReportTime)
-			timeout := monitorConfig.ReportTimeoutSeconds
+			timeout := monitorConfig.ReportTimeout
 			timeoutHit := timeSinceLastReport > timeout
 
-			if monitorState.Up && timeoutHit && monitorConfig.ReportTimeoutSeconds != 0 {
+			if monitorState.Up && timeoutHit && monitorConfig.ReportTimeout != 0 {
 				monitorState.Up = false
 				monitorState.Reason = fmt.Sprintf("No report received for %s", timeout)
 			}

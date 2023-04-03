@@ -1,7 +1,7 @@
 monitors:
   - name: "test"
     friendlyName: "Monitor 1"
-    reportTimeoutSeconds: 1m
+    reportTimeout: 1m
 
   - name: "test2"
     friendlyName: "Monitor 2"
