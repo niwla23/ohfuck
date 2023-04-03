@@ -9,7 +9,6 @@ interface MonitorData {
   reason: string
 }
 
-
 const getReason = (providedReason: string, up: boolean) => {
   if (providedReason.length > 0) {
     return providedReason
@@ -53,6 +52,23 @@ const usePrevious = <T extends unknown>(value: T): T | undefined => {
   return ref.current
 }
 
+const sendNotification = async (title: string, body: string) => {
+  if (window.Notification && Notification.permission !== "denied") {
+    const permission = await Notification.requestPermission()
+    if (permission === "granted") {
+      const reg = await navigator.serviceWorker.getRegistration()
+      if (!reg) {
+        alert("no reg")
+        return
+      }
+      reg.showNotification(title, {
+        body: body,
+        icon: "/logo.svg",
+      })
+    }
+  }
+}
+
 export default function Home() {
   const [monitors, setMonitors] = useState<MonitorData[]>([])
   const previousMonitors = usePrevious(monitors)
@@ -81,15 +97,9 @@ export default function Home() {
         return
       }
       if (!monitor.up && oldMonitor?.up) {
-        new Notification(`DOWN: ${monitor.friendlyName}`, {
-          body: `"${monitor.friendlyName}" is crying. please fix.`,
-          icon: "/logo.svg",
-        })
+        sendNotification(`DOWN: ${monitor.friendlyName}`, `"${monitor.friendlyName}" is crying. please fix.`)
       } else if (monitor.up && !oldMonitor?.up) {
-        new Notification(`UP: ${monitor.friendlyName}`, {
-          body: `"${monitor.friendlyName}" has recovered. Congrats!`,
-          icon: "/logo.svg",
-        })
+        sendNotification(`UP: ${monitor.friendlyName}`, `"${monitor.friendlyName}" has recovered. Congrats!`)
       }
     }
   }, [monitors])
