@@ -103,7 +103,7 @@ func main() {
 		encodedData, err := json.Marshal(MonitorState{Up: state == "UP", Reason: reason, LastReportTime: time.Now()})
 		check(err)
 		store.Set(monitorName, encodedData, 0)
-		return c.SendString("OK")
+		return c.Status(200).SendString("OK")
 	}
 
 	app.Post("/api/report/:monitorName/:state", func(c *fiber.Ctx) error {
@@ -143,7 +143,7 @@ func main() {
 			states = append(states, monitorState)
 		}
 
-		return c.JSON(states)
+		return c.Status(200).JSON(states)
 	})
 
 	log.Fatal(app.Listen(":3000"))
