@@ -77,7 +77,7 @@ func main() {
 		PathPrefix: "fake_frontend",
 	}))
 
-	app.Post("/api/report/:monitorName/:state", func(c *fiber.Ctx) error {
+	handleReport := func(c *fiber.Ctx) error {
 		monitorName := c.Params("monitorName")
 		state := string(c.Params("state"))
 		state = strings.TrimSpace(state)
@@ -104,6 +104,14 @@ func main() {
 		check(err)
 		store.Set(monitorName, encodedData, 0)
 		return c.SendString("OK")
+	}
+
+	app.Post("/api/report/:monitorName/:state", func(c *fiber.Ctx) error {
+		return handleReport(c)
+	})
+
+	app.Get("/api/report/:monitorName/:state", func(c *fiber.Ctx) error {
+		return handleReport(c)
 	})
 
 	app.Get("/api/monitors", func(c *fiber.Ctx) error {

@@ -1,3 +1,6 @@
 frontend/dev-dist
 frontend/dist
-*.sqlite3
+frontend/node_modules
+.sqlite3
+ohfuck
+ohfuck.sqlite3
