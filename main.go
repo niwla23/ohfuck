@@ -19,16 +19,18 @@ import (
 
 type AppConfig struct {
 	Monitors []struct {
-		Name         string `yaml:"name"`
-		FriendlyName string `yaml:"friendlyName"`
+		Name                 string        `yaml:"name"`
+		FriendlyName         string        `yaml:"friendlyName"`
+		ReportTimeoutSeconds time.Duration `yaml:"reportTimeoutSeconds"`
 	} `yaml:"monitors"`
 }
 
 type MonitorState struct {
-	Name         string `json:"name"`
-	FriendlyName string `json:"friendlyName"`
-	Up           bool   `json:"up"`
-	Reason       string `json:"reason"`
+	Name           string    `json:"name"`
+	FriendlyName   string    `json:"friendlyName"`
+	Up             bool      `json:"up"`
+	Reason         string    `json:"reason"`
+	LastReportTime time.Time `json:"lastReportTime"`
 }
 
 func check(e error) {
@@ -98,7 +100,7 @@ func main() {
 		if !slices.Contains(monitorNames, monitorName) {
 			return c.Status(400).SendString("Invalid monitor name")
 		}
-		encodedData, err := json.Marshal(MonitorState{Up: state == "UP", Reason: reason})
+		encodedData, err := json.Marshal(MonitorState{Up: state == "UP", Reason: reason, LastReportTime: time.Now()})
 		check(err)
 		store.Set(monitorName, encodedData, 0)
 		return c.SendString("OK")
@@ -120,6 +122,16 @@ func main() {
 			check(err)
 			monitorState.Name = monitorConfig.Name
 			monitorState.FriendlyName = monitorConfig.FriendlyName
+
+			timeSinceLastReport := time.Since(monitorState.LastReportTime)
+			timeout := monitorConfig.ReportTimeoutSeconds
+			timeoutHit := timeSinceLastReport > timeout
+
+			if monitorState.Up && timeoutHit && monitorConfig.ReportTimeoutSeconds != 0 {
+				monitorState.Up = false
+				monitorState.Reason = fmt.Sprintf("No report received for %s", timeout)
+			}
+
 			states = append(states, monitorState)
 		}
 

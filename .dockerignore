@@ -1,0 +1,5 @@
+pushDocker.sh
+*.sqlite3
+docker-compose.yml
+config.yaml
+Dockerfile
