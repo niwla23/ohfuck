@@ -19,7 +19,7 @@ var rdb = redis.NewClient(&redis.Options{
 })
 
 func init() {
-	if err := rdb.Ping(ctx); err != nil {
+	if err := rdb.Ping(ctx); err.Err() != nil {
 		log.Println(err)
 		log.Println("Unable to connect to redis. Exiting...")
 		os.Exit(1)
