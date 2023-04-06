@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 
@@ -65,6 +64,5 @@ func GetMonitorState(monitorName string) (types.MonitorState, error) {
 	monitorState.Name = monitorName
 	monitorState.FriendlyName = friendlyName
 
-	fmt.Println(monitorName)
 	return monitorState, nil
 }
