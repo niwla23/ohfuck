@@ -15,7 +15,7 @@ RUN pnpm build
 # ------------------ #
 
 FROM golang:1.19-alpine AS backend_builder
-RUN apk add --no-cache build-base
+# RUN apk add --no-cache build-base
 WORKDIR /tmp/ohfuck
 # first only copy files relevant for module downloads (caching)
 COPY go.mod .
@@ -32,7 +32,7 @@ RUN go build -o ./ohfuck .
 # ----------- # 
 
 FROM alpine
-RUN apk add ca-certificates
+# RUN apk add ca-certificates
 COPY --from=backend_builder /tmp/ohfuck/ohfuck /app/ohfuck
 EXPOSE 3000
 CMD ["/app/ohfuck"]

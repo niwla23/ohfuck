@@ -1,7 +1,15 @@
+redisHost: localhost:6379
+mqtt:
+  host: "192.168.178.33:1883"
+
 monitors:
   - name: "test"
     friendlyName: "Monitor 1"
     reportTimeout: 1m
+    mqtt:
+      topic: "monitors/test"
+      upMessage: "UP"
+      downMessage: "DOWN"
 
   - name: "test2"
     friendlyName: "Monitor 2"
@@ -14,45 +22,3 @@ monitors:
 
   - name: "testre"
     friendlyName: "Monitor 1"
-
-  - name: "testd2"
-    friendlyName: "Monitor 2"
-
-  - name: "tesdt3"
-    friendlyName: "Monitor 3"
-    
-  - name: "tesdt4"
-    friendlyName: "Monitor 3"
-
-  - name: "dtestre"
-    friendlyName: "Monitor 1"
-
-  - name: "stestd2"
-    friendlyName: "Monitor 2"
-
-  - name: "1stesdt3"
-    friendlyName: "Monitor 3"
-    
-  - name: "1stesdt4"
-    friendlyName: "Monitor 3"
-
-  - name: "1testd2"
-    friendlyName: "Monitor 2"
-
-  - name: "1tesdt3"
-    friendlyName: "Monitor 3"
-    
-  - name: "1tesdt4"
-    friendlyName: "Monitor 3"
-
-  - name: "1dtestre"
-    friendlyName: "Monitor 1"
-
-  - name: "21stestd2"
-    friendlyName: "Monitor 2"
-
-  - name: "21stesdt3"
-    friendlyName: "Monitor 3"
-    
-  - name: "21stesdt4"
-    friendlyName: "Monitor 3"

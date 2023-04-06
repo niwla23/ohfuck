@@ -2,37 +2,20 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
-	"github.com/gofiber/storage/sqlite3"
+	"github.com/niwla23/ohfuck/config"
+	"github.com/niwla23/ohfuck/storage"
+	"github.com/niwla23/ohfuck/types"
 	"github.com/prometheus/alertmanager/template"
 	"golang.org/x/exp/slices"
-	"gopkg.in/yaml.v2"
 )
-
-type AppConfig struct {
-	Monitors []struct {
-		Name          string        `yaml:"name"`
-		FriendlyName  string        `yaml:"friendlyName"`
-		ReportTimeout time.Duration `yaml:"reportTimeout"`
-	} `yaml:"monitors"`
-}
-
-type MonitorState struct {
-	Name           string    `json:"name"`
-	FriendlyName   string    `json:"friendlyName"`
-	Up             bool      `json:"up"`
-	Reason         string    `json:"reason"`
-	LastReportTime time.Time `json:"lastReportTime"`
-}
 
 func check(e error) {
 	if e != nil {
@@ -44,37 +27,20 @@ func check(e error) {
 var frontendFs embed.FS
 
 func main() {
-	store := sqlite3.New(sqlite3.Config{
-		Database:        "./ohfuck.sqlite3",
-		Table:           "fiber_storage",
-		Reset:           false,
-		GCInterval:      10 * time.Second,
-		MaxOpenConns:    100,
-		MaxIdleConns:    100,
-		ConnMaxLifetime: 1 * time.Second,
-	})
-
-	var appConfig AppConfig
-
-	fp := os.Getenv("OHFUCK_CONFIG_FILE")
-	if fp == "" {
-		panic("OHFUCK_CONFIG_FILE is not set")
-	}
-
-	dat, err := os.ReadFile(fp)
-	check(err)
-	err = yaml.Unmarshal(dat, &appConfig)
-	check(err)
-	fmt.Println(appConfig.Monitors)
 	monitorNames := []string{}
-	for _, monitor := range appConfig.Monitors {
+	for _, monitor := range config.AppConfig.Monitors {
 		monitorNames = append(monitorNames, monitor.Name)
 	}
+
+	log.Printf("%d monitors loaded.", len(monitorNames))
+
+	go startMQTTHandler()
+
 	app := fiber.New(fiber.Config{AppName: "OhFuck"})
 
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:       http.FS(frontendFs),
-		Browse:     true,
+		Browse:     false,
 		PathPrefix: "fake_frontend",
 	}))
 
@@ -101,9 +67,9 @@ func main() {
 		if !slices.Contains(monitorNames, monitorName) {
 			return c.Status(400).SendString("Invalid monitor name")
 		}
-		encodedData, err := json.Marshal(MonitorState{Up: state == "UP", Reason: reason, LastReportTime: time.Now()})
-		check(err)
-		store.Set(monitorName, encodedData, 0)
+
+		log.Printf("received http report for %s, STATE: %s", monitorName, state)
+		storage.StoreMonitorState(monitorName, types.MonitorState{Up: state == "UP", Reason: reason, LastReportTime: time.Now()})
 		return c.Status(200).SendString("OK")
 	}
 
@@ -122,37 +88,24 @@ func main() {
 			return err
 		}
 
+		log.Println("received alertmanager alerts")
 		for _, alert := range data.Alerts {
-			// if alert.Status == "firing"
 			monitorName := alert.Labels["ohfuck_name"]
 			if monitorName == "" {
 				continue
 			}
-
-			encodedData, err := json.Marshal(MonitorState{Up: alert.Status != "firing", Reason: alert.Annotations["description"], LastReportTime: time.Now()})
-			check(err)
-			store.Set(monitorName, encodedData, 0)
+			storage.StoreMonitorState(monitorName, types.MonitorState{Up: alert.Status != "firing", Reason: alert.Annotations["description"], LastReportTime: time.Now()})
 		}
+		log.Println("end alertmanager alerts")
 
 		return c.SendString("ok")
 	})
 
 	app.Get("/api/monitors", func(c *fiber.Ctx) error {
-		states := []MonitorState{}
-		for _, monitorConfig := range appConfig.Monitors {
-			raw, err := store.Get(monitorConfig.Name)
-
-			if len(raw) == 0 {
-				states = append(states, MonitorState{Name: monitorConfig.Name, FriendlyName: monitorConfig.FriendlyName, Up: false, Reason: "No Information"})
-				continue
-			}
-
+		states := []types.MonitorState{}
+		for _, monitorConfig := range config.AppConfig.Monitors {
+			monitorState, err := storage.GetMonitorState(monitorConfig.Name)
 			check(err)
-			var monitorState MonitorState
-			err = json.Unmarshal(raw, &monitorState)
-			check(err)
-			monitorState.Name = monitorConfig.Name
-			monitorState.FriendlyName = monitorConfig.FriendlyName
 
 			timeSinceLastReport := time.Since(monitorState.LastReportTime)
 			timeout := monitorConfig.ReportTimeout
