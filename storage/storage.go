@@ -50,6 +50,8 @@ func GetMonitorState(monitorName string) (types.MonitorState, error) {
 	if !found {
 		return monitorState, errors.New("monitor not found")
 	}
+	monitorState.Name = monitorName
+	monitorState.FriendlyName = friendlyName
 
 	raw, err := rdb.Get(ctx, monitorName).Result()
 	if err != nil {
