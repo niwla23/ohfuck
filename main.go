@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/niwla23/ohfuck/config"
 	"github.com/niwla23/ohfuck/storage"
@@ -37,6 +38,7 @@ func main() {
 	go startMQTTHandler()
 
 	app := fiber.New(fiber.Config{AppName: "OhFuck"})
+	app.Use(cors.New())
 
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:       http.FS(frontendFs),
