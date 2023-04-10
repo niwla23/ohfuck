@@ -37,7 +37,7 @@ func startMQTTHandler() {
 		for _, monitor := range config.AppConfig.Monitors {
 			if monitor.MQTT.Topic == msg.Topic() {
 				monitorState := types.MonitorState{Up: true, Reason: "MQTT", LastReportTime: time.Now()}
-				if message == monitor.MQTT.UpMessage {
+				if message == monitor.MQTT.UpMessage || monitor.MQTT.UpMessage == "" {
 					monitorState.Up = true
 				} else if message == monitor.MQTT.DownMessage {
 					monitorState.Up = false
