@@ -23,16 +23,30 @@ func randToken(n int) string {
 	return hex.EncodeToString(bytes)
 }
 
+func subscribeTopicsFromConfig(client MQTT.Client) {
+	for _, monitor := range config.AppConfig.Monitors {
+		if monitor.MQTT.Topic == "" {
+			continue
+		}
+		if token := client.Subscribe(monitor.MQTT.Topic, byte(0), nil); token.Wait() && token.Error() != nil {
+			fmt.Println(token.Error())
+			os.Exit(1)
+		}
+	}
+}
+
 func startMQTTHandler() {
-	opts := MQTT.NewClientOptions()
-	opts.AddBroker(config.AppConfig.MQTT.Host)
-	opts.SetUsername(config.AppConfig.MQTT.User)
-	opts.SetPassword(config.AppConfig.MQTT.Password)
-	opts.SetClientID("ohfuck" + randToken(8))
+	opts := MQTT.NewClientOptions().
+		AddBroker(config.AppConfig.MQTT.Host).
+		SetAutoReconnect(true).
+		SetKeepAlive(30 * time.Second).
+		SetUsername(config.AppConfig.MQTT.User).
+		SetPassword(config.AppConfig.MQTT.Password).
+		SetClientID("ohfuck" + randToken(8))
 
 	opts.SetDefaultPublishHandler(func(client MQTT.Client, msg MQTT.Message) {
 		message := string(msg.Payload())
-		log.Printf("received mqtt, TOPIC: %s MESSAGE: %s\n", msg.Topic(), message)
+		log.Printf("[mqtt] received message, TOPIC: %s MESSAGE: %s\n", msg.Topic(), message)
 
 		for _, monitor := range config.AppConfig.Monitors {
 			if monitor.MQTT.Topic == msg.Topic() {
@@ -49,22 +63,26 @@ func startMQTTHandler() {
 		}
 	})
 
+	opts.SetConnectionLostHandler(func(c MQTT.Client, err error) {
+		log.Printf("[mqtt] connection lost! error: %v\n", err)
+	})
+
+	opts.SetReconnectingHandler(func(c MQTT.Client, co *MQTT.ClientOptions) {
+		log.Printf("[mqtt] attempting to reconnect\n")
+	})
+
+	opts.SetOnConnectHandler(func(c MQTT.Client) {
+		log.Printf("[mqtt] sucessfully connected!")
+		subscribeTopicsFromConfig(c)
+		log.Println("[mqtt] subscribed all configured topics")
+	})
+
 	// create a MQTT client, panic on fail
 	client := MQTT.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
-
-	// subscribe all configured topics
-	for _, monitor := range config.AppConfig.Monitors {
-		if monitor.MQTT.Topic == "" {
-			continue
-		}
-		if token := client.Subscribe(monitor.MQTT.Topic, byte(0), nil); token.Wait() && token.Error() != nil {
-			fmt.Println(token.Error())
-			os.Exit(1)
-		}
-	}
+	log.Printf("[mqtt] created client for %s\n", config.AppConfig.MQTT.Host)
 
 	// keep goroutine alive
 	for {

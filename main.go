@@ -28,23 +28,27 @@ func check(e error) {
 var frontendFs embed.FS
 
 func main() {
+	log.Println("[main] starting up..")
 	monitorNames := []string{}
 	for _, monitor := range config.AppConfig.Monitors {
 		monitorNames = append(monitorNames, monitor.Name)
 	}
 
-	log.Printf("%d monitors loaded.", len(monitorNames))
+	log.Printf("[main] %d monitors loaded.", len(monitorNames))
 
 	go startMQTTHandler()
 
-	app := fiber.New(fiber.Config{AppName: "OhFuck"})
+	app := fiber.New(fiber.Config{AppName: "OhFuck", DisableStartupMessage: true})
+	log.Println("[http] loaded app config")
 	app.Use(cors.New())
+	log.Println("[http] loaded CORS middleware")
 
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:       http.FS(frontendFs),
 		Browse:     false,
 		PathPrefix: "fake_frontend",
 	}))
+	log.Println("[http] loaded embedded frontend route")
 
 	handleReport := func(c *fiber.Ctx) error {
 		monitorName := c.Params("monitorName")
@@ -70,7 +74,7 @@ func main() {
 			return c.Status(400).SendString("Invalid monitor name")
 		}
 
-		log.Printf("received http report for %s, STATE: %s", monitorName, state)
+		log.Printf("[http] received report for %s, STATE: %s", monitorName, state)
 		storage.StoreMonitorState(monitorName, types.MonitorState{Up: state == "UP", Reason: reason, LastReportTime: time.Now()})
 		return c.Status(200).SendString("OK")
 	}
@@ -90,7 +94,7 @@ func main() {
 			return err
 		}
 
-		log.Println("received alertmanager alerts")
+		log.Println("[http:alertmanager] received alertmanager alerts")
 		for _, alert := range data.Alerts {
 			monitorName := alert.Labels["ohfuck_name"]
 			if monitorName == "" {
@@ -98,7 +102,7 @@ func main() {
 			}
 			storage.StoreMonitorState(monitorName, types.MonitorState{Up: alert.Status != "firing", Reason: alert.Annotations["description"], LastReportTime: time.Now()})
 		}
-		log.Println("end alertmanager alerts")
+		log.Println("[http:alertmanager] end alertmanager alerts")
 
 		return c.SendString("ok")
 	})
@@ -124,5 +128,6 @@ func main() {
 		return c.Status(200).JSON(states)
 	})
 
+	log.Println("[http] now listening on port 3000")
 	log.Fatal(app.Listen(":3000"))
 }

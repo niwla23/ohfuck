@@ -20,7 +20,7 @@ var rdb = redis.NewClient(&redis.Options{
 func init() {
 	if err := rdb.Ping(ctx); err.Err() != nil {
 		log.Println(err)
-		log.Println("Unable to connect to redis. Exiting...")
+		log.Println("[storage] Unable to connect to redis. Exiting...")
 		os.Exit(1)
 	}
 }
@@ -31,7 +31,7 @@ func StoreMonitorState(monitorName string, monitorState types.MonitorState) erro
 		return err
 	}
 
-	log.Printf("storing new monitor state, NAME: %s, UP: %v", monitorName, monitorState.Up)
+	log.Printf("[storage] storing new monitor state, NAME: %s, UP: %v", monitorName, monitorState.Up)
 	return rdb.Set(ctx, monitorName, encodedData, 0).Err()
 }
 
