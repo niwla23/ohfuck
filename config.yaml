@@ -1,6 +1,8 @@
 redisHost: localhost:6379
 mqtt:
   host: "192.168.178.33:1883"
+scriptRunner:
+  path: "./test_scripts"
 
 monitors:
   - name: "test"
@@ -13,9 +15,15 @@ monitors:
 
   - name: "test2"
     friendlyName: "Monitor 2"
+    scriptRunner:
+      script: "fail.sh"
+      interval: "10s"
 
   - name: "test3"
     friendlyName: "Monitor 3"
+    scriptRunner:
+      script: "success.sh"
+      interval: "10s"
 
   - name: "test4"
     friendlyName: "Monitor 3"

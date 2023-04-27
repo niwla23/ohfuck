@@ -12,6 +12,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/niwla23/ohfuck/config"
+	mqtt_module "github.com/niwla23/ohfuck/modules/mqtt"
+	scriptrunner_module "github.com/niwla23/ohfuck/modules/scriptrunner"
+
 	"github.com/niwla23/ohfuck/storage"
 	"github.com/niwla23/ohfuck/types"
 	"github.com/prometheus/alertmanager/template"
@@ -36,7 +39,8 @@ func main() {
 
 	log.Printf("[main] %d monitors loaded.", len(monitorNames))
 
-	go startMQTTHandler()
+	go mqtt_module.StartMQTTHandler()
+	go scriptrunner_module.StartScriptRunnerModule()
 
 	app := fiber.New(fiber.Config{AppName: "OhFuck", DisableStartupMessage: true})
 	log.Println("[http] loaded app config")

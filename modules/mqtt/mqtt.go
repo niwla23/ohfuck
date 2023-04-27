@@ -1,4 +1,4 @@
-package main
+package mqtt
 
 import (
 	"crypto/rand"
@@ -35,7 +35,7 @@ func subscribeTopicsFromConfig(client MQTT.Client) {
 	}
 }
 
-func startMQTTHandler() {
+func StartMQTTHandler() {
 	opts := MQTT.NewClientOptions().
 		AddBroker(config.AppConfig.MQTT.Host).
 		SetAutoReconnect(true).

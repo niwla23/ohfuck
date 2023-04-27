@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/niwla23/ohfuck/config"
 	"github.com/niwla23/ohfuck/types"
@@ -67,4 +68,12 @@ func GetMonitorState(monitorName string) (types.MonitorState, error) {
 	monitorState.FriendlyName = friendlyName
 
 	return monitorState, nil
+}
+
+func GetValue(key string) (string, error) {
+	return rdb.Get(ctx, key).Result()
+}
+
+func SetValue(key string, value string, expiration time.Duration) error {
+	return rdb.Set(ctx, key, value, expiration).Err()
 }
