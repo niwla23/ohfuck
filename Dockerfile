@@ -32,7 +32,8 @@ RUN go build -o ./ohfuck .
 # ----------- # 
 
 FROM alpine
-# RUN apk add ca-certificates
+RUN apk add ca-certificates python3 py3-pip
+RUN pip3 install requests
 COPY --from=backend_builder /tmp/ohfuck/ohfuck /app/ohfuck
 EXPOSE 3000
 CMD ["/app/ohfuck"]
