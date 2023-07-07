@@ -64,7 +64,7 @@ func StoreMonitorState(monitorName string, monitorState types.MonitorState) erro
 				message = fmt.Sprintf("🚨 %s is down!", monitorConfig.FriendlyName)
 			}
 
-			http.Post(monitorConfig.NtfyUrl, "text/plain", strings.NewReader(message))
+			http.Post(ntfyUrl, "text/plain", strings.NewReader(message))
 			log.Printf("[ntfy] sent notification to %s", ntfyUrl)
 			break
 		}
