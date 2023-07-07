@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	NtfyUrl   string `yaml:"ntfyUrl"`
 	RedisHost string `yaml:"redisHost"`
 	MQTT      struct {
 		Host     string `yaml:"host"`

@@ -3,6 +3,8 @@ mqtt:
   host: "192.168.178.33:1883"
 scriptRunner:
   path: "./test_scripts"
+ntfyUrl: "https://ntfy.sh/aui4u92w34iwebfui9owergh02t89"
+
 
 monitors:
   - name: "test"

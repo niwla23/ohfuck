@@ -47,7 +47,13 @@ func StoreMonitorState(monitorName string, monitorState types.MonitorState) erro
 			if monitorConfig.Name != monitorName {
 				continue
 			}
-			if monitorConfig.NtfyUrl == "" {
+
+			ntfyUrl := monitorConfig.NtfyUrl
+			if ntfyUrl == "" {
+				ntfyUrl = config.AppConfig.NtfyUrl
+			}
+
+			if ntfyUrl == "" {
 				break
 			}
 
