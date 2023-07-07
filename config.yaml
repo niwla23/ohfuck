@@ -25,6 +25,16 @@ monitors:
       script: "success.sh"
       interval: "10s"
 
+  - name: "script_with_args"
+    friendlyName: "Monitor 3"
+    ntfyUrl: "https://ntfy.sh/aui4u92w34iwebfui9owergh02t89"
+    scriptRunner:
+      script: "script_with_args.sh"
+      args:
+        - "hallo"
+        - "test"
+      interval: "10s"
+
   - name: "test4"
     friendlyName: "Monitor 3"
 

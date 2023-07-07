@@ -1,0 +1,5 @@
+package ntfy
+
+func ProcessEvent() {
+
+}

@@ -23,6 +23,7 @@ type Config struct {
 		FriendlyName  string        `yaml:"friendlyName"`
 		ReportTimeout time.Duration `yaml:"reportTimeout"`
 		AssumeUp      bool          `yaml:"assumeUp"`
+		NtfyUrl       string        `yaml:"ntfyUrl"`
 		MQTT          struct {
 			Topic       string `yaml:"topic"`
 			UpMessage   string `yaml:"upMessage"`
@@ -33,6 +34,7 @@ type Config struct {
 		} `yaml:"mqtt"`
 		ScriptRunner struct {
 			Script   string        `yaml:"script"`
+			Args     []string      `yaml:"args"`
 			Interval time.Duration `yaml:"interval"`
 		} `yaml:"scriptRunner"`
 	} `yaml:"monitors"`

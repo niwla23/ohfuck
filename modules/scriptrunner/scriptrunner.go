@@ -20,8 +20,8 @@ type ScriptResult struct {
 	Reason string `json:"reason"`
 }
 
-func runScript(name string) (ScriptResult, error) {
-	cmd := exec.Command(config.AppConfig.ScriptRunner.Path + "/" + name)
+func runScript(name string, args []string) (ScriptResult, error) {
+	cmd := exec.Command(config.AppConfig.ScriptRunner.Path+"/"+name, args...)
 
 	// capture the output
 	var out bytes.Buffer
@@ -75,7 +75,7 @@ func StartScriptRunnerModule() {
 
 			if lastRuntime.Add(monitor.ScriptRunner.Interval).Before(time.Now()) {
 				log.Printf("[scriptrunner] running script '%s' for monitor %s\n", monitor.ScriptRunner.Script, monitor.Name)
-				scriptResult, err := runScript(monitor.ScriptRunner.Script)
+				scriptResult, err := runScript(monitor.ScriptRunner.Script, monitor.ScriptRunner.Args)
 				if err != nil {
 					log.Printf("[scriptrunner] error running script: %v: ", err)
 				}

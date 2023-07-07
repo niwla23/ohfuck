@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/niwla23/ohfuck/config"
@@ -30,6 +33,35 @@ func StoreMonitorState(monitorName string, monitorState types.MonitorState) erro
 	encodedData, err := json.Marshal(monitorState)
 	if err != nil {
 		return err
+	}
+
+	previousState, err := GetMonitorState(monitorName)
+	if err != nil {
+		return err
+	}
+
+	stateChanged := previousState.Up != monitorState.Up
+
+	if stateChanged {
+		for _, monitorConfig := range config.AppConfig.Monitors {
+			if monitorConfig.Name != monitorName {
+				continue
+			}
+			if monitorConfig.NtfyUrl == "" {
+				break
+			}
+
+			message := ""
+			if monitorState.Up {
+				message = fmt.Sprintf("😀 %s just recovered!", monitorConfig.FriendlyName)
+			} else {
+				message = fmt.Sprintf("🚨 %s is down!", monitorConfig.FriendlyName)
+			}
+
+			http.Post(monitorConfig.NtfyUrl, "text/plain", strings.NewReader(message))
+			log.Printf("[ntfy] sent notification to %s", monitorConfig.NtfyUrl)
+			break
+		}
 	}
 
 	log.Printf("[storage] storing new monitor state, NAME: %s, UP: %v", monitorName, monitorState.Up)
